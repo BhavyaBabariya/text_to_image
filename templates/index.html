@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Vision | Image Generator</title>
+    <!-- Importing modern typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- Animated background glowing orbs -->
+    <div class="background-glow pos-1"></div>
+    <div class="background-glow pos-2"></div>
+    
+    <div class="container">
+        <header>
+            <!-- Premium Title -->
+            <h1>AI <span>Vision</span></h1>
+            <p>Transform your imagination into stunning reality with a single sentence.</p>
+        </header>
+
+        <main>
+            <!-- Glassmorphism Main Panel -->
+            <div class="glass-panel">
+                <form id="generate-form">
+                    <div class="input-group">
+                        <input type="text" id="prompt-input" placeholder="Describe what you want to see... (e.g. A cyberpunk city at neon sunrise)" required autocomplete="off">
+                        <button type="submit" id="generate-btn">
+                            <span class="btn-text">Generate</span>
+                            <div class="loader hidden"></div>
+                        </button>
+                    </div>
+                </form>
+
+                <div id="error-message" class="error-toast hidden"></div>
+
+                <!-- Showcase area for the returned image -->
+                <div class="image-showcase hidden" id="image-container">
+                    <div class="image-wrapper">
+                        <img id="generated-image" src="" alt="Generated AI Image">
+                        <div class="image-overlay">
+                            <a id="download-btn" href="" download>Download High-Res Image</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const form = document.getElementById('generate-form');
+        const input = document.getElementById('prompt-input');
+        const btn = document.getElementById('generate-btn');
+        const btnText = document.querySelector('.btn-text');
+        const loader = document.querySelector('.loader');
+        const imageContainer = document.getElementById('image-container');
+        const generatedImage = document.getElementById('generated-image');
+        const downloadBtn = document.getElementById('download-btn');
+        const errorMessage = document.getElementById('error-message');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const prompt = input.value.trim();
+            if(!prompt) return;
+
+            // Trigger Loading State styles
+            btn.disabled = true;
+            btnText.classList.add('hidden');
+            loader.classList.remove('hidden');
+            errorMessage.classList.add('hidden');
+            imageContainer.classList.add('hidden');
+            imageContainer.classList.remove('fade-in');
+
+            try {
+                // Post to the Flask backend
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt })
+                });
+
+                const data = await response.json();
+
+                if(data.success) {
+                    // Pre-load image natively before animation starts
+                    generatedImage.src = data.image_url;
+                    downloadBtn.href = data.image_url;
+                    
+                    generatedImage.onload = () => {
+                        imageContainer.classList.remove('hidden');
+                        setTimeout(() => {
+                            imageContainer.classList.add('fade-in');
+                        }, 50);
+                    };
+                } else {
+                    showError(data.error);
+                }
+            } catch (error) {
+                showError("Network error. Please make sure the Flask server is running.");
+            } finally {
+                // Reset Button
+                btn.disabled = false;
+                btnText.classList.remove('hidden');
+                loader.classList.add('hidden');
+            }
+        });
+
+        function showError(msg) {
+            errorMessage.textContent = msg;
+            errorMessage.classList.remove('hidden');
+            // Auto-hide error after 5s
+            setTimeout(() => {
+                errorMessage.classList.add('hidden');
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

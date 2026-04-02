@@ -1,0 +1,28 @@
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Environment configurations
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Python / IDEs
+__pycache__/
+*.py[cod]
+*$py.class
+.vscode/
+.idea/
+
+# Generated images
+static/images/
+generated_image*.png
+*.jpg
+*.jpeg
+*.png
